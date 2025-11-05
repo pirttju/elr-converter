@@ -1,0 +1,29 @@
+{
+  "name": "elr-converter",
+  "version": "1.0.0",
+  "description": "Translates between geospatial locations and mileages",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pirttju/elr-converter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pirttju/elr-converter/issues"
+  },
+  "homepage": "https://github.com/pirttju/elr-converter#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "pg-promise": "^12.2.0"
+  }
+}

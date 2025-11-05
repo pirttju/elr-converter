@@ -29,7 +29,6 @@ const repos = {
   coordinates: new CoordinatesRepository(
     db,
     {
-      findByElrAndMileage: sql("sql/coordinates/findByElrAndMileage.sql"),
       findBatch: sql("sql/coordinates/findBatch.sql"),
     },
     pgp
@@ -37,7 +36,6 @@ const repos = {
   mileages: new MileagesRepository(
     db,
     {
-      findByCoordinate: sql("sql/mileages/findByCoordinate.sql"),
       findBatch: sql("sql/mileages/findBatch.sql"),
     },
     pgp

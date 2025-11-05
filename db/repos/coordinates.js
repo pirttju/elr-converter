@@ -11,7 +11,15 @@ class CoordinatesRepository {
 
     // Access ColumnSet from the passed-in pgp object
     this.cs = new pgp.helpers.ColumnSet(
-      ["id", "elr", "miles", "chains", "yards", "kilometers", "metres"],
+      [
+        { name: "id", def: null },
+        "elr",
+        { name: "miles", def: null, cast: "numeric" },
+        { name: "chains", def: null, cast: "numeric" },
+        { name: "yards", def: null, cast: "numeric" },
+        { name: "kilometres", def: null, cast: "numeric" },
+        { name: "metres", def: null, cast: "numeric" },
+      ],
       {
         table: "input_data", // A dummy table name is sufficient
       }
@@ -21,8 +29,24 @@ class CoordinatesRepository {
   /**
    * Finds a single coordinate by its ELR and mileage.
    */
-  async findByElrAndMileage({ elr, target_km }) {
-    return this.db.oneOrNone(this.sql.findByElrAndMileage, { elr, target_km });
+  async findByElrAndMileage(params) {
+    // Wrap the single parameter object in an array
+    const data = [params];
+
+    // Call the batch method
+    const results = await this.findBatch(data);
+
+    // If we got a result, check if the conversion was successful
+    if (results && results.length > 0) {
+      const result = results[0];
+      // A successful conversion will have a non-null longitude
+      if (result.longitude !== null) {
+        return result;
+      }
+    }
+
+    // Otherwise, return null to indicate not found
+    return null;
   }
 
   /**

@@ -1,4 +1,5 @@
-WITH input_data (id, lon, lat) AS (
+WITH input_data (id, lon, lat, radius) AS (
+  VALUES
   $/values:raw/
 ),
 inputs AS (
@@ -12,8 +13,8 @@ SELECT
   FLOOR(nearby_lines.calc_mi)::integer AS miles,
   ROUND((nearby_lines.calc_mi - FLOOR(nearby_lines.calc_mi)) * 80)::integer AS chains,
   ROUND((nearby_lines.calc_mi - FLOOR(nearby_lines.calc_mi)) * 1760)::integer AS yards,
-  -- Metric Calculations (Kilometers, Metres)
-  FLOOR(nearby_lines.calc_km)::integer AS kilometers,
+  -- Metric Calculations (kilometres, Metres)
+  FLOOR(nearby_lines.calc_km)::integer AS kilometres,
   ROUND((nearby_lines.calc_km - FLOOR(nearby_lines.calc_km)) * 1000)::integer AS metres,
   ROUND(nearby_lines.distance_to_line_in_metres) AS distance
 FROM
@@ -31,7 +32,7 @@ LEFT JOIN LATERAL (
       -- Transform the current input point's geometry on the fly.
       (SELECT ST_Transform(ST_SetSRID(ST_MakePoint(i.lon, i.lat), 4326), 27700)) AS pt(input_geom)
     WHERE
-      ST_DWithin(s.geom, pt.input_geom, 100.0)
+      ST_DWithin(s.geom, pt.input_geom, i.radius)
     -- This ORDER BY is essential for the DISTINCT ON to work correctly.
     ORDER BY
       s.elr, s.geom <-> pt.input_geom

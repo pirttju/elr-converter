@@ -1,4 +1,5 @@
-WITH input_data (id, elr, miles, chains, yards, kilometers, metres) AS (
+WITH input_data (id, elr, miles, chains, yards, kilometres, metres) AS (
+  VALUES
   $/values:raw/
 ),
 inputs AS (
@@ -11,7 +12,7 @@ SELECT
   i.miles,
   i.chains,
   i.yards,
-  i.kilometers,
+  i.kilometres,
   i.metres,
   ST_X(ST_Transform(result.calculated_geom, 4326)) AS longitude,
   ST_Y(ST_Transform(result.calculated_geom, 4326)) AS latitude,
@@ -40,7 +41,7 @@ LEFT JOIN LATERAL (
         CASE
           WHEN (COALESCE(i.miles, 0) + COALESCE(i.chains, 0) + COALESCE(i.yards, 0)) > 0
           THEN COALESCE(i.miles, 0) + COALESCE(i.chains, 0)/80.0 + COALESCE(i.yards, 0)/1760.0
-          ELSE COALESCE(i.kilometers, 0) + COALESCE(i.metres, 0)/1000.0
+          ELSE COALESCE(i.kilometres, 0) + COALESCE(i.metres, 0)/1000.0
         END AS target_distance
     ) AS target,
     nwr_elrs_split AS s

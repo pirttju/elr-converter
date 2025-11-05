@@ -11,7 +11,12 @@ class MileagesRepository {
 
     // Access ColumnSet from the passed-in pgp object
     this.cs = new pgp.helpers.ColumnSet(
-      ["id", { name: "lon", prop: "x" }, { name: "lat", prop: "y" }],
+      [
+        { name: "id", def: null },
+        { name: "lon", prop: "x", cast: "numeric" },
+        { name: "lat", prop: "y", cast: "numeric" },
+        { name: "radius", def: 100, cast: "integer" },
+      ],
       {
         table: "input_data",
       }
@@ -22,7 +27,9 @@ class MileagesRepository {
    * Finds mileages for a single coordinate within a given radius.
    */
   async findByCoordinate({ x, y, radius }) {
-    return this.db.any(this.sql.findByCoordinate, { lon: x, lat: y, radius });
+    // Create an array with a single item and call the batch method.
+    const data = [{ x, y, radius }];
+    return this.findBatch(data);
   }
 
   /**

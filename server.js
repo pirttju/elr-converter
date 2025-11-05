@@ -101,45 +101,24 @@ app.post("/mileages", async (req, res) => {
  * GET /coordinates
  */
 app.get("/coordinates", async (req, res) => {
+  // Directly use the query parameters without modification
   const { elr, miles, chains, yards, kilometres, metres } = req.query;
 
+  // --- VALIDATION ---
   if (!elr) {
     return res.status(400).json({ error: "Missing required parameter: elr" });
   }
 
-  let target_km = -1;
-  const MILE_TO_KM = 1.609344;
-
-  // Prioritize imperial units if present
-  if (miles || chains || yards) {
-    const totalMiles =
-      (parseFloat(miles) || 0) +
-      (parseFloat(chains) || 0) / 80.0 +
-      (parseFloat(yards) || 0) / 1760.0;
-    target_km = totalMiles * MILE_TO_KM;
-  }
-  // Otherwise, use metric units
-  else if (kilometres || metres) {
-    target_km =
-      (parseFloat(kilometres) || 0) + (parseFloat(metres) || 0) / 1000.0;
-  } else {
-    return res.status(400).json({
-      error:
-        "Must provide mileage parameters (miles/chains/yards or kilometres/metres).",
-    });
-  }
-
-  if (target_km < 0) {
+  // Check that at least one mileage part is provided
+  if (!miles && !chains && !yards && !kilometres && !metres) {
     return res
       .status(400)
-      .json({ error: "Invalid or missing mileage values." });
+      .json({ error: "Must provide at least one mileage parameter." });
   }
 
   try {
-    const result = await repos.coordinates.findByElrAndMileage({
-      elr,
-      target_km,
-    });
+    // Pass the raw query parameters directly to the repository method
+    const result = await repos.coordinates.findByElrAndMileage(req.query);
 
     if (result) {
       res.json(result);

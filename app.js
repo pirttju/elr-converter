@@ -75,8 +75,17 @@ app.get("/mileages", async (req, res) => {
 
   const lon = parseFloat(x);
   const lat = parseFloat(y);
-  // Use provided radius or default to 100 m
+
+  // Use provided radius or default to 100 m, and do range checks
   const searchRadius = parseInt(radius, 10) || 100;
+
+  if (searchRadius > 1000) {
+    searchRadius = 1000;
+  }
+
+  if (searchRadius < 1) {
+    searchRadius = 1;
+  }
 
   if (isNaN(lon) || isNaN(lat)) {
     return res.status(400).json({ error: "Invalid coordinate values." });

@@ -42,7 +42,6 @@ paths:
       summary: Batch converts geospatial coordinates to mileages
       description: 'Reads in a JSON-formatted array and runs a batch conversion of up to 1000 features.'
       parameters:
-        - $ref: '#/components/parameters/distance-param'
         - $ref: '#/components/parameters/srs_name-param'
       requestBody:
         required: true
@@ -141,7 +140,7 @@ components:
       description: 'Position in kilometres.'
     metres:
       type: integer
-      description: 'Distance from marker in metres.'
+      description: 'Distance in metres.'
     mileage_to_coordinate:
       type: object
       required:
@@ -173,6 +172,8 @@ components:
           $ref: '#/components/schemas/x'
         y:
           $ref: '#/components/schemas/y'
+        distance:
+          $ref: '#/components/schemas/distance'
   parameters:
     id-param:
       name: id

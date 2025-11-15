@@ -4,7 +4,7 @@
   "description": "Translates between geospatial locations and mileages",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --recursive",
     "start": "node server.js"
   },
   "repository": {
@@ -27,5 +27,10 @@
     "js-yaml": "^4.1.0",
     "pg-promise": "^12.2.0",
     "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "chai": "^6.2.1",
+    "mocha": "^11.7.5",
+    "supertest": "^7.1.4"
   }
 }

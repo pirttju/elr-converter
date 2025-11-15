@@ -7,21 +7,20 @@ inputs AS (
   FROM input_data
 )
 SELECT
-  i.id AS input_feature_id,
+  i.id,
   nearby_lines.elr,
   -- Imperial Calculations from physical distance
-  nearby_lines.miles, -- The integer part of the block
+  nearby_lines.miles,
   ROUND(nearby_lines.physical_dist_metres / 20.1168)::integer AS chains, -- 1 chain = 20.1168 metres
   ROUND(nearby_lines.physical_dist_metres / 0.9144)::integer AS yards,   -- 1 yard = 0.9144 metres
   -- Metric Calculations from physical distance
-  nearby_lines.kilometres, -- The integer part of the block
+  nearby_lines.kilometres,
   ROUND(nearby_lines.physical_dist_metres)::integer AS metres,
   ROUND(nearby_lines.distance_to_line_in_metres) AS distance
 FROM
   inputs AS i
 -- Use LEFT JOIN to ensure all input rows are kept, even if they have no matches.
 LEFT JOIN LATERAL (
-    -- This subquery now calculates PHYSICAL offsets, not nominal ones.
     SELECT DISTINCT ON (s.elr)
       s.elr,
       -- The integer "block" is the integer part of the segment's start value.
@@ -40,7 +39,6 @@ LEFT JOIN LATERAL (
     ORDER BY
       s.elr, s.geom <-> pt.input_geom
   ) AS nearby_lines ON TRUE -- ON TRUE is the required syntax for a LEFT JOIN with a LATERAL subquery
-
 ORDER BY
   i.input_order,
   nearby_lines.distance_to_line_in_metres;

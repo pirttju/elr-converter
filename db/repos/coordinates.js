@@ -29,12 +29,11 @@ class CoordinatesRepository {
   /**
    * Finds a single coordinate by its ELR and mileage.
    */
-  async findByElrAndMileage(params) {
-    // Wrap the single parameter object in an array
+  async findByElrAndMileage(params, srid) {
     const data = [params];
 
     // Call the batch method
-    const results = await this.findBatch(data);
+    const results = await this.findBatch(data, srid);
 
     // If we got a result, check if the conversion was successful
     if (results && results.length > 0) {
@@ -52,9 +51,9 @@ class CoordinatesRepository {
   /**
    * Batch converts an array of ELR/mileage objects to coordinates.
    */
-  async findBatch(data) {
+  async findBatch(data, srid) {
     const values = this.pgp.helpers.values(data, this.cs);
-    return this.db.any(this.sql.findBatch, { values });
+    return this.db.any(this.sql.findBatch, { values, srid });
   }
 }
 

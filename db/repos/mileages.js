@@ -26,18 +26,18 @@ class MileagesRepository {
   /**
    * Finds mileages for a single coordinate within a given radius.
    */
-  async findByCoordinate({ id, x, y, distance }) {
+  async findByCoordinate({ id, x, y, distance, srid }) {
     // Create an array with a single item and call the batch method.
     const data = [{ id, x, y, distance }];
-    return this.findBatch(data);
+    return this.findBatch(data, srid);
   }
 
   /**
    * Batch converts an array of coordinate objects to mileages.
    */
-  async findBatch(data) {
+  async findBatch(data, srid) {
     const values = this.pgp.helpers.values(data, this.cs);
-    return this.db.any(this.sql.findBatch, { values });
+    return this.db.any(this.sql.findBatch, { values, srid });
   }
 }
 

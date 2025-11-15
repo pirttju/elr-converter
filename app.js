@@ -67,7 +67,7 @@ app.get("/", async (req, res) => {
  * GET /mileages
  */
 app.get("/mileages", async (req, res) => {
-  const { id, x, y, distance } = req.query;
+  const { id, x, y, distance, srs_name } = req.query;
 
   if (!x || !y) {
     return res.status(400).json({ error: "Missing required parameters: x, y" });
@@ -91,12 +91,21 @@ app.get("/mileages", async (req, res) => {
     return res.status(400).json({ error: "Invalid coordinate values." });
   }
 
+  let srid = 4326;
+
+  if (String(srs_name).toLowerCase === "epsg:4326") {
+    srid = 4326;
+  } else if (String(srs_name).toLowerCase() === "epsg:27700") {
+    srid = 27700;
+  }
+
   try {
     const results = await repos.mileages.findByCoordinate({
       id: id,
       x: lon,
       y: lat,
       distance: searchDistance,
+      srid: srid,
     });
     res.json(results);
   } catch (error) {
@@ -110,6 +119,7 @@ app.get("/mileages", async (req, res) => {
  * POST /mileages
  */
 app.post("/mileages", async (req, res) => {
+  const { srs_name } = req.query;
   const locations = req.body;
 
   if (!Array.isArray(locations) || locations.length === 0) {
@@ -123,8 +133,16 @@ app.post("/mileages", async (req, res) => {
       .json({ error: "Batch size cannot exceed 1000 features." });
   }
 
+  let srid = 4326;
+
+  if (String(srs_name).toLowerCase === "epsg:4326") {
+    srid = 4326;
+  } else if (String(srs_name).toLowerCase() === "epsg:27700") {
+    srid = 27700;
+  }
+
   try {
-    const results = await repos.mileages.findBatch(locations);
+    const results = await repos.mileages.findBatch(locations, srid);
     res.json(results);
   } catch (error) {
     console.error("API Error:", error);
@@ -140,7 +158,7 @@ app.post("/mileages", async (req, res) => {
  */
 app.get("/coordinates", async (req, res) => {
   // Directly use the query parameters without modification
-  const { elr, miles, chains, yards, kilometres, metres } = req.query;
+  const { elr, miles, chains, yards, kilometres, metres, srs_name } = req.query;
 
   // --- VALIDATION ---
   if (!elr) {
@@ -155,9 +173,17 @@ app.get("/coordinates", async (req, res) => {
     });
   }
 
+  let srid = 4326;
+
+  if (String(srs_name).toLowerCase === "epsg:4326") {
+    srid = 4326;
+  } else if (String(srs_name).toLowerCase() === "epsg:27700") {
+    srid = 27700;
+  }
+
   try {
     // Pass the raw query parameters directly to the repository method
-    const result = await repos.coordinates.findByElrAndMileage(req.query);
+    const result = await repos.coordinates.findByElrAndMileage(req.query, srid);
 
     if (result) {
       res.json(result);
@@ -177,6 +203,7 @@ app.get("/coordinates", async (req, res) => {
  * POST /coordinates
  */
 app.post("/coordinates", async (req, res) => {
+  const { srs_name } = req.query;
   const locations = req.body;
 
   if (!Array.isArray(locations) || locations.length === 0) {
@@ -190,8 +217,16 @@ app.post("/coordinates", async (req, res) => {
       .json({ error: "Batch size cannot exceed 1000 features." });
   }
 
+  let srid = 4326;
+
+  if (String(srs_name).toLowerCase === "epsg:4326") {
+    srid = 4326;
+  } else if (String(srs_name).toLowerCase() === "epsg:27700") {
+    srid = 27700;
+  }
+
   try {
-    const results = await repos.coordinates.findBatch(locations);
+    const results = await repos.coordinates.findBatch(locations, srid);
     res.json(results);
   } catch (error) {
     console.error("API Error:", error);

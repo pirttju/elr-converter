@@ -8,9 +8,8 @@ inputs AS (
 )
 SELECT
   i.id, i.elr, i.miles, i.chains, i.yards, i.kilometres, i.metres,
-  ST_X(ST_Transform(result.calculated_geom, 4326)) AS longitude,
-  ST_Y(ST_Transform(result.calculated_geom, 4326)) AS latitude,
-  ST_AsText(result.calculated_geom) AS point_wkt_27700
+  ST_X(ST_Transform(result.calculated_geom, ${srid})) AS x,
+  ST_Y(ST_Transform(result.calculated_geom, ${srid})) AS y
 FROM
   inputs AS i
 LEFT JOIN LATERAL (

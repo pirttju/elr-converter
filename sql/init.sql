@@ -1,5 +1,5 @@
--- Table for metadata
-CREATE TABLE elr_meta (
-  elr text PRIMARY KEY,
-  line_name text
-);
+-- Database initialisation
+CREATE DATABASE gis TEMPLATE template0;
+CREATE USER gis WITH ENCRYPTED PASSWORD 'gis';
+CREATE EXTENSION postgis;
+GRANT ALL PRIVILEGES ON DATABASE gis TO gis;

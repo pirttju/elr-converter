@@ -15,6 +15,10 @@ Geospatial data (https://raildata.org.uk/):
 
 - NWR Track Model
 
+# Database Initialisation
+
+Run commands in init.sql as a superuser to initialise the database.
+
 # Data Preparation
 
 ## Importing Shapefiles
@@ -29,8 +33,7 @@ ogr2ogr -f PostgreSQL PG:"dbname=gis host=localhost port=5432 user=gis" NWR_Trac
 
 ## Converting Data
 
-Run sql files that initialise the database and convert the data:
-
+Run sql files that convert the data:
 ```bash
 psql -d gis -U gis -f split_nwr_elrs.sql
 psql -d gis -U gis -f update_nwr_elrs_split.sql

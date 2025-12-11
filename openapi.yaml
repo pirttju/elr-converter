@@ -15,16 +15,15 @@ servers:
   - url: /
     description: Development server
 tags:
-  - name: mileage-converter
+  - name: conversion
     description: Mileage Conversion
-tags:
-  - name: mileage-metadata
+  - name: metadata
     description: Metadata
 paths:
   /mileages:
     get:
       tags:
-        - mileage-converter
+        - conversion
       summary: Converts geospatial coordinates to mileages
       parameters:
         - $ref: '#/components/parameters/id-param'
@@ -41,7 +40,7 @@ paths:
                 type: object
     post:
       tags:
-        - mileage-converter
+        - conversion
       summary: Batch converts geospatial coordinates to mileages
       description: 'Reads in a JSON-formatted array and runs a batch conversion of up to 1000 features.'
       parameters:
@@ -64,7 +63,7 @@ paths:
   /coordinates:
     get:
       tags:
-        - mileage-converter
+        - conversion
       summary: Converts mileages to geospatial coordinates
       parameters:
         - $ref: '#/components/parameters/id-param'
@@ -84,7 +83,7 @@ paths:
                 type: object
     post:
       tags:
-        - mileage-converter
+        - conversion
       summary: Batch converts mileages to geospatial coordinates
       description: 'Reads in a JSON-formatted array and runs a batch conversion of up to 1000 features.'
       requestBody:
@@ -105,7 +104,7 @@ paths:
   /metadata:
     get:
       tags:
-        - mileage-metadata
+        - metadata
       summary: List of ELRs
       description: 'Returns a list of ELRs and their starting and ending points as in the data.'
       parameters:

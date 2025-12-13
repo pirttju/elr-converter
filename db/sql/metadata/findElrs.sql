@@ -1,5 +1,5 @@
 SELECT
-  elr
+  elr,
   ROUND(MIN(start_mi),3) AS start_mi,
   ROUND(MAX(end_mi),3) AS end_mi,
   ROUND(MIN(start_km),3) AS start_km,

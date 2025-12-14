@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "elr-converter",
+      name: "mileage-converter",
       script: "./server.js",
       env: {
         NODE_ENV: "production",

@@ -173,6 +173,13 @@ app.get("/coordinates", async (req, res) => {
     });
   }
 
+  if (chains < 0 || yards < 0 || metres < 0) {
+    return res.status(400).json({
+      error:
+        "Unable to process a negative length as mileage parameter: chains, yards or metres.",
+    });
+  }
+
   let srid = 4326;
 
   if (String(srs_name).toLowerCase === "epsg:4326") {

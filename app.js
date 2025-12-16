@@ -194,7 +194,7 @@ app.get("/coordinates", async (req, res) => {
 
     Object.keys(result).forEach((k) => result[k] == null && delete result[k]);
 
-    if (result) {
+    if (result && result.x && result.y) {
       res.json(result);
     } else {
       res

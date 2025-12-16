@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pirttju/elr-converter.git"
+    "url": "git+https://github.com/pirttju/mileage-converter.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/pirttju/elr-converter/issues"
+    "url": "https://github.com/pirttju/mileage-converter/issues"
   },
-  "homepage": "https://github.com/pirttju/elr-converter#readme",
+  "homepage": "https://github.com/pirttju/mileage-converter#readme",
   "dependencies": {
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.3",

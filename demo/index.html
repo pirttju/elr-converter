@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Railway Mileage Converter Demo</title>
+
+    <!-- MapLibre GL JS CSS (Version 5.14.0) -->
+    <link
+      href="https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+
+      /* Floating Input Card Style */
+      .control-panel {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 320px;
+        z-index: 10;
+      }
+
+      .control-panel h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+        color: #333;
+      }
+
+      /* Tab Navigation */
+      .tab-container {
+        display: flex;
+        border-bottom: 2px solid #eee;
+        margin-bottom: 15px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-weight: bold;
+        color: #888;
+        outline: none;
+        transition: color 0.2s;
+      }
+
+      .tab-btn.active {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+        margin-bottom: -2px; /* Overlap border */
+      }
+
+      .tab-btn:hover {
+        color: #555;
+      }
+
+      /* Form Inputs */
+      .input-section {
+        display: none;
+      }
+      .input-section.active {
+        display: block;
+      }
+
+      input::placeholder {
+        font-weight: normal;
+        opacity: 0.5;
+        color: #999;
+      }
+
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 4px;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      /* Buttons */
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      button {
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        flex: 1;
+      }
+
+      #search-btn {
+        background-color: #007bff;
+        color: white;
+      }
+      #search-btn:hover {
+        background-color: #0056b3;
+      }
+
+      #clear-btn {
+        background-color: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+      }
+      #clear-btn:hover {
+        background-color: #e2e6ea;
+      }
+
+      /* Loading indicator */
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      /* Status Message Area */
+      #status-box {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 0.9em;
+        display: none;
+        line-height: 1.4em;
+        word-wrap: break-word;
+      }
+
+      .status-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .status-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      /* Popup Customization */
+      .maplibregl-popup-content {
+        padding: 15px;
+        border-radius: 6px;
+        min-width: 200px;
+      }
+
+      .popup-header {
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-bottom: 5px;
+        padding-right: 5px;
+        display: block;
+      }
+
+      .popup-data {
+        margin: 5px 0;
+        font-size: 0.9em;
+        line-height: 1.4em;
+      }
+      .popup-label {
+        font-weight: bold;
+        color: #555;
+      }
+
+      .maplibregl-popup-close-button {
+        font-size: 16px;
+        color: #555;
+        padding: 5px;
+        top: 0;
+        right: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Input Form Overlay -->
+    <div class="control-panel">
+      <h3>Find Coordinate by Mileage</h3>
+
+      <!-- Common ELR Field -->
+      <div class="form-group">
+        <label for="elr">ELR (Line Reference)</label>
+        <input type="text" id="elr" placeholder="e.g. CMP2" value="CMP2" />
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-container">
+        <button class="tab-btn active" data-target="imperial">Imperial</button>
+        <button class="tab-btn" data-target="metric">Metric</button>
+      </div>
+
+      <!-- Imperial Inputs -->
+      <div id="imperial" class="input-section active">
+        <div class="form-group">
+          <label for="miles">Miles</label>
+          <input type="number" id="miles" placeholder="0" value="188" />
+        </div>
+        <div class="form-group">
+          <label for="chains">Chains, or</label>
+          <input type="number" id="chains" placeholder="0" value="68" />
+        </div>
+        <div class="form-group">
+          <label for="yards">Yards</label>
+          <input type="number" id="yards" placeholder="0" />
+        </div>
+      </div>
+
+      <!-- Metric Inputs -->
+      <div id="metric" class="input-section">
+        <div class="form-group">
+          <label for="kilometres">Kilometres</label>
+          <input type="number" id="kilometres" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label for="metres">Metres</label>
+          <input type="number" id="metres" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="search-btn">Locate</button>
+        <button id="clear-btn">Clear All</button>
+      </div>
+
+      <!-- Error/Status Box -->
+      <div id="status-box"></div>
+
+      <p style="font-size: 0.8em; color: #888; margin-top: 15px">
+        Click on the map to find mileage info (Red Circle).
+      </p>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- MapLibre GL JS Script (Version 5.14.0) -->
+    <script src="https://unpkg.com/maplibre-gl@5.14.0/dist/maplibre-gl.js"></script>
+
+    <script>
+      const API_URL = "http://localhost:3001/mileage-converter";
+      // Store multiple search results and map clicks
+      let searchFeatures = [];
+      let clickFeatures = [];
+
+      // --- 1. Map Initialization ---
+      const map = new maplibregl.Map({
+        container: "map",
+        style: {
+          version: 8,
+          sources: {
+            osm: {
+              type: "raster",
+              tiles: [
+                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+              ],
+              tileSize: 256,
+              attribution: "&copy; OpenStreetMap Contributors",
+            },
+          },
+          layers: [
+            {
+              id: "osm-tiles",
+              type: "raster",
+              source: "osm",
+              minzoom: 0,
+              maxzoom: 19,
+            },
+          ],
+        },
+        center: [-2.23, 53.47],
+        zoom: 13,
+      });
+
+      map.on("load", () => {
+        // User Input Result (Blue)
+        map.addSource("search-result", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+        map.addLayer({
+          id: "search-result-circle",
+          type: "circle",
+          source: "search-result",
+          paint: {
+            "circle-radius": 6,
+            "circle-color": "#007bff",
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#ffffff",
+          },
+        });
+
+        // Click Result (Red)
+        map.addSource("click-result", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+        map.addLayer({
+          id: "click-result-circle",
+          type: "circle",
+          source: "click-result",
+          paint: {
+            "circle-radius": 6,
+            "circle-color": "#dc3545",
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#ffffff",
+          },
+        });
+
+        // --- Cursor Pointer Logic (Hover) ---
+        const circleLayers = ["search-result-circle", "click-result-circle"];
+        circleLayers.forEach((layer) => {
+          map.on(
+            "mouseenter",
+            layer,
+            () => (map.getCanvas().style.cursor = "pointer")
+          );
+          map.on(
+            "mouseleave",
+            layer,
+            () => (map.getCanvas().style.cursor = "")
+          );
+        });
+      });
+
+      // --- 2. UI Logic (Tabs & Status) ---
+
+      const tabs = document.querySelectorAll(".tab-btn");
+      const sections = document.querySelectorAll(".input-section");
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          tabs.forEach((t) => t.classList.remove("active"));
+          sections.forEach((s) => s.classList.remove("active"));
+          tab.classList.add("active");
+          document.getElementById(tab.dataset.target).classList.add("active");
+          updateStatus(null);
+        });
+      });
+
+      const updateStatus = (message, type) => {
+        const box = document.getElementById("status-box");
+        if (!message) {
+          box.style.display = "none";
+          return;
+        }
+        box.style.display = "block";
+        box.className = type === "error" ? "status-error" : "status-success";
+        box.innerText = message;
+      };
+
+      const createPopupContent = (data, title) => {
+        let html = `<div class="popup-header">${title}</div><hr style="margin: 5px 0; opacity: 0.3;">`;
+        for (const [key, value] of Object.entries(data)) {
+          if (key !== "_title" && value !== null && value !== undefined) {
+            html += `<div class="popup-data"><span class="popup-label">${key}:</span> ${value}</div>`;
+          }
+        }
+        return html;
+      };
+
+      // --- 3. Interaction Logic ---
+
+      // Helper: Close all popups
+      const closePopups = () => {
+        const popups = document.getElementsByClassName("maplibregl-popup");
+        while (popups.length > 0) {
+          popups[0].remove();
+        }
+      };
+
+      // Global Map Click Handler
+      map.on("click", async (e) => {
+        // 1. Check if we clicked on an existing circle
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ["search-result-circle", "click-result-circle"],
+        });
+
+        if (features.length > 0) {
+          // Open popup for existing circle
+          const feature = features[0];
+          const coordinates = feature.geometry.coordinates.slice();
+          const props = feature.properties;
+          const title = props._title || "Info";
+
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          }
+
+          new maplibregl.Popup({ offset: 15 })
+            .setLngLat(coordinates)
+            .setHTML(createPopupContent(props, title))
+            .addTo(map);
+
+          return;
+        }
+
+        // 2. Background Click -> Fetch & Add Red Circle
+        const { lng, lat } = e.lngLat;
+        updateStatus(null);
+        closePopups();
+
+        const url = `${API_URL}/mileages?x=${lng}&y=${lat}&distance=1000&srs_name=EPSG%3A4326`;
+
+        try {
+          const response = await fetch(url);
+          let data;
+          try {
+            data = await response.json();
+          } catch (e) {
+            throw new Error("Invalid JSON response");
+          }
+
+          if (data.error) {
+            updateStatus(data.error, "error");
+            return;
+          }
+          if (!response.ok)
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+          if (Array.isArray(data) && data.length > 0) {
+            const result = data[0];
+            const title = `Nearest Mileage (Dist: ${Math.round(
+              result.distance
+            )}m)`;
+            result._title = title;
+
+            // Create New Feature
+            const point = {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [lng, lat] },
+              properties: result,
+            };
+
+            // Accumulate Red Circles
+            clickFeatures.push(point);
+
+            // Update Map Source
+            map.getSource("click-result").setData({
+              type: "FeatureCollection",
+              features: clickFeatures,
+            });
+
+            // Open popup for the new Red Circle
+            new maplibregl.Popup({ offset: 15 })
+              .setLngLat([lng, lat])
+              .setHTML(createPopupContent(result, title))
+              .addTo(map);
+          } else {
+            updateStatus(
+              "No railway mileage found near this location.",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          updateStatus(`Error: ${error.message}`, "error");
+        }
+      });
+
+      // B. Form Input -> Get Coordinates
+      document
+        .getElementById("search-btn")
+        .addEventListener("click", async () => {
+          updateStatus(null);
+          const btn = document.getElementById("search-btn");
+
+          const elr = document.getElementById("elr").value.trim();
+          if (!elr) {
+            updateStatus("ELR is required.", "error");
+            return;
+          }
+
+          const isImperial = document
+            .getElementById("imperial")
+            .classList.contains("active");
+          const params = new URLSearchParams();
+          params.append("elr", elr);
+          params.append("srs_name", "EPSG:4326");
+
+          let hasInput = false;
+
+          if (isImperial) {
+            const miles = document.getElementById("miles").value;
+            const chains = document.getElementById("chains").value;
+            const yards = document.getElementById("yards").value;
+            if (miles) params.append("miles", miles);
+            if (chains) params.append("chains", chains);
+            if (yards) params.append("yards", yards);
+            if (miles || chains || yards) hasInput = true;
+          } else {
+            const km = document.getElementById("kilometres").value;
+            const m = document.getElementById("metres").value;
+            if (km) params.append("kilometres", km);
+            if (m) params.append("metres", m);
+            if (km || m) hasInput = true;
+          }
+
+          if (!hasInput) {
+            updateStatus("Please enter at least one distance value.", "error");
+            return;
+          }
+
+          btn.textContent = "Searching...";
+          btn.classList.add("loading");
+          closePopups();
+
+          const url = `${API_URL}/coordinates?${params.toString()}`;
+
+          try {
+            const response = await fetch(url);
+            let data;
+            try {
+              data = await response.json();
+            } catch (e) {
+              throw new Error("Invalid JSON response");
+            }
+
+            if (data.error) {
+              updateStatus(data.error, "error");
+              return;
+            }
+            if (!response.ok)
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+
+            if (data.x && data.y) {
+              const lng = parseFloat(data.x);
+              const lat = parseFloat(data.y);
+              const title = "Located Mileage";
+
+              data._title = title;
+
+              // Create and accumulate new feature
+              const newFeature = {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [lng, lat] },
+                properties: data,
+              };
+              searchFeatures.push(newFeature);
+
+              // Update Map Source
+              map.getSource("search-result").setData({
+                type: "FeatureCollection",
+                features: searchFeatures,
+              });
+
+              map.flyTo({ center: [lng, lat], zoom: 16 });
+
+              new maplibregl.Popup({ closeOnClick: false, offset: 15 })
+                .setLngLat([lng, lat])
+                .setHTML(createPopupContent(data, title))
+                .addTo(map);
+
+              updateStatus("Coordinates found. Added to map.", "success");
+            } else {
+              updateStatus(
+                "Could not convert mileage to coordinates. Check input values.",
+                "error"
+              );
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            updateStatus(`Fetch Error: ${error.message}`, "error");
+          } finally {
+            btn.textContent = "Locate";
+            btn.classList.remove("loading");
+          }
+        });
+
+      // C. Clear Button -> Remove all Circles (Blue & Red)
+      document.getElementById("clear-btn").addEventListener("click", () => {
+        // Empty data arrays
+        searchFeatures = [];
+        clickFeatures = [];
+
+        // Clear map sources
+        map
+          .getSource("search-result")
+          .setData({ type: "FeatureCollection", features: [] });
+        map
+          .getSource("click-result")
+          .setData({ type: "FeatureCollection", features: [] });
+
+        closePopups();
+        updateStatus("All markers cleared.", "success");
+      });
+
+      map.addControl(new maplibregl.NavigationControl());
+    </script>
+  </body>
+</html>

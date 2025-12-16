@@ -108,9 +108,15 @@ app.get("/mileages", async (req, res) => {
       srid: srid,
     });
 
-    Object.keys(results).forEach(
-      (k) => results[k] == null && delete results[k]
-    );
+    results.forEach((result) => {
+      Object.keys(result).forEach((k) => result[k] == null && delete result[k]);
+    });
+
+    if (Object.keys(results[0]).length === 0) {
+      res
+        .status(404)
+        .json({ error: "Location not found for the given coordinates." });
+    }
 
     res.json(results);
   } catch (error) {
@@ -149,9 +155,9 @@ app.post("/mileages", async (req, res) => {
   try {
     const results = await repos.mileages.findBatch(locations, srid);
 
-    Object.keys(results).forEach(
-      (k) => results[k] == null && delete results[k]
-    );
+    results.forEach((result) => {
+      Object.keys(result).forEach((k) => result[k] == null && delete result[k]);
+    });
 
     res.json(results);
   } catch (error) {

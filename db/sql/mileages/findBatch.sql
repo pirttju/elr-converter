@@ -10,19 +10,20 @@ SELECT
   i.id,
   nearby_lines.elr,
   
-  -- IMPERIAL CALCULATIONS (Based on interpolated Mileage)
-  -- The integer mile post
-  floor(nearby_lines.calc_mi)::integer AS miles, 
-  -- Extract the decimal part of the mile, multiply by 80 for chains
-  ROUND((nearby_lines.calc_mi - floor(nearby_lines.calc_mi)) * 80)::integer AS chains,
-  -- Extract the decimal part of the mile, multiply by 1760 for yards
-  ROUND((nearby_lines.calc_mi - floor(nearby_lines.calc_mi)) * 1760)::integer AS yards,
+  -- IMPERIAL CALCULATIONS (Anchored to Start Mile)
+  -- Use the segment's start mile as the integer base
+  floor(nearby_lines.start_mi)::integer AS miles, 
+  -- Calculate the full difference from that start mile (allows values > 80)
+  ROUND((nearby_lines.calc_mi - floor(nearby_lines.start_mi)) * 80)::integer AS chains,
+  -- Calculate the full difference from that start mile (allows values > 1760)
+  ROUND((nearby_lines.calc_mi - floor(nearby_lines.start_mi)) * 1760)::integer AS yards,
 
-  -- METRIC CALCULATIONS (Based on interpolated Kilometerage)
-  -- The integer kilometer post
-  floor(nearby_lines.calc_km)::integer AS kilometres,
-  -- Extract the decimal part of the km, multiply by 1000 for metres
-  ROUND((nearby_lines.calc_km - floor(nearby_lines.calc_km)) * 1000)::integer AS metres,
+  -- METRIC CALCULATIONS (Anchored to Start Kilometre)
+  -- Use the segment's start km as the integer base
+  floor(nearby_lines.start_km)::integer AS kilometres,
+  -- Calculate the full difference from that start km (allows values > 1000)
+  ROUND((nearby_lines.calc_km - floor(nearby_lines.start_km)) * 1000)::integer AS metres,
+
   -- Physical distance from the input point to the rail line (perpendicular distance)
   ROUND(nearby_lines.distance_to_line_in_metres) AS distance,
   -- Point on the rail line
@@ -33,6 +34,10 @@ FROM
 LEFT JOIN LATERAL (
     SELECT DISTINCT ON (s.elr)
       s.elr,
+      -- WE MUST SELECT THE START VALUES TO USE AS ANCHORS
+      s.start_mi,
+      s.start_km,
+      
       -- 1. Calculate the position fraction (0.0 start, 1.0 end) along the segment
       ST_LineLocatePoint(s.geom, ST_ClosestPoint(s.geom, pt.input_geom)) AS frac,
       
@@ -41,6 +46,7 @@ LEFT JOIN LATERAL (
       
       -- 3. Interpolate KM: Start + (Fraction * (End - Start))
       s.start_km + (ST_LineLocatePoint(s.geom, ST_ClosestPoint(s.geom, pt.input_geom)) * (s.end_km - s.start_km)) AS calc_km,
+      
       ST_ClosestPoint(s.geom, pt.input_geom) AS closest_geom,
       ST_Distance(s.geom, pt.input_geom) AS distance_to_line_in_metres
     FROM

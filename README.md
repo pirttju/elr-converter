@@ -2,6 +2,11 @@
 
 Translates geospatial locations to Engineer's Line References (ELRs) and mileages (and vice versa).
 
+# Live Demo
+
+Demo Map: https://sv1.raiteilla.fi/mileage-demo/
+Swagger UI: https://sv1.raiteilla.fi/mileage-converter/api-docs/
+
 # Requirements
 
 Recent versions of:
